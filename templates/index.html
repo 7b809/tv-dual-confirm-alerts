@@ -41,9 +41,12 @@
 <script>
 
 let table = $('#alertsTable').DataTable({
-    order: [[4, "desc"]],   // sort by Time column newest first
+    order: [[4, "desc"]],
     pageLength: 25
 });
+
+// 🔥 Static Manual Testing Link
+const manualChartLink = "https://www.tradingview.com/chart/NJntjUQW/";
 
 function loadAlerts() {
     fetch('/api/alerts')
@@ -54,16 +57,15 @@ function loadAlerts() {
 
             data.forEach(alert => {
 
-                // Keep your existing badge logic
                 let badgeColor = (alert.type && alert.type.includes("CE")) ? "bg-success" : "bg-info";
 
                 table.row.add([
                     `<span class="badge ${badgeColor}">${alert.type || ""}</span>`,
-                    alert.current_symbol || "",   // FIXED (was alert.ticker)
+                    alert.current_symbol || "",
                     alert.pivot_price || "",
                     alert.confirm_price || "",
                     alert.confirm_time || "",
-                    `<a href="${alert.current_chart || '#'}" target="_blank" class="btn btn-sm btn-warning">View</a>`  // FIXED (was alert.chart)
+                    `<a href="${manualChartLink}" target="_blank" class="btn btn-sm btn-warning">View</a>`
                 ]);
             });
 
@@ -72,10 +74,7 @@ function loadAlerts() {
         .catch(error => console.error("Error loading alerts:", error));
 }
 
-// Initial Load
 loadAlerts();
-
-// Auto refresh every 5 seconds
 setInterval(loadAlerts, 5000);
 
 </script>
