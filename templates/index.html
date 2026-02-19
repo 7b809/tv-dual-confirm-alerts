@@ -19,16 +19,17 @@
         <table id="alertsTable" class="table table-dark table-striped table-bordered">
             <thead class="table-primary text-dark">
                 <tr>
+                    <th>Signal</th>
+                    <th>Underlying</th>
+                    <th>Strike</th>
                     <th>Type</th>
-                    <th>Symbol</th>
                     <th>Pivot</th>
                     <th>Confirm</th>
-                    <th>Time (IST)</th>
+                    <th>Time</th>
                     <th>Chart</th>
                 </tr>
             </thead>
-            <tbody>
-            </tbody>
+            <tbody></tbody>
         </table>
     </div>
 </div>
@@ -41,12 +42,27 @@
 <script>
 
 let table = $('#alertsTable').DataTable({
-    order: [[4, "desc"]],
+    order: [[6, "desc"]],
     pageLength: 25
 });
 
-// 🔥 Static Manual Testing Link
+// Manual testing link
 const manualChartLink = "https://www.tradingview.com/chart/NJntjUQW/";
+
+// Function to extract underlying & strike
+function parseSymbol(symbol) {
+    if (!symbol) return { underlying: "", strike: "" };
+
+    const match = symbol.match(/^([A-Z]+)(\d{6})([CP])(\d+)/);
+
+    if (!match) return { underlying: symbol, strike: "" };
+
+    const underlying = match[1];
+    const optionType = match[3] === "C" ? "CE" : "PE";
+    const strike = match[4] + " " + optionType;
+
+    return { underlying, strike };
+}
 
 function loadAlerts() {
     fetch('/api/alerts')
@@ -57,11 +73,25 @@ function loadAlerts() {
 
             data.forEach(alert => {
 
-                let badgeColor = (alert.type && alert.type.includes("CE")) ? "bg-success" : "bg-info";
+                const parsed = parseSymbol(alert.current_symbol);
+
+                // Build clear signal message
+                let signalText = "";
+                let signalColor = "bg-info";
+
+                if (alert.ce_status === "RISING") {
+                    signalText = "CE RISING → BUY";
+                    signalColor = "bg-success";
+                } else if (alert.pe_status === "RISING") {
+                    signalText = "PE RISING → BUY";
+                    signalColor = "bg-primary";
+                }
 
                 table.row.add([
-                    `<span class="badge ${badgeColor}">${alert.type || ""}</span>`,
-                    alert.current_symbol || "",
+                    `<span class="badge ${signalColor}">${signalText}</span>`,
+                    parsed.underlying,
+                    parsed.strike,
+                    alert.type || "",
                     alert.pivot_price || "",
                     alert.confirm_price || "",
                     alert.confirm_time || "",
