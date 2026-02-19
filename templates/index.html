@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TradingView Alerts Dashboard</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- DataTables -->
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-dark text-light">
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">🚀 Breakout Alerts Dashboard</h2>
+
+    <div class="table-responsive">
+        <table id="alertsTable" class="table table-dark table-striped table-bordered">
+            <thead class="table-primary text-dark">
+                <tr>
+                    <th>Type</th>
+                    <th>Symbol</th>
+                    <th>Pivot</th>
+                    <th>Confirm</th>
+                    <th>Time (IST)</th>
+                    <th>Chart</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+
+let table = $('#alertsTable').DataTable({
+    order: [[4, "desc"]],   // sort by Time column newest first
+    pageLength: 25
+});
+
+function loadAlerts() {
+    fetch('/api/alerts')
+        .then(response => response.json())
+        .then(data => {
+
+            table.clear();
+
+            data.forEach(alert => {
+
+                let badgeColor = alert.type.includes("CE") ? "bg-success" : "bg-info";
+
+                table.row.add([
+                    `<span class="badge ${badgeColor}">${alert.type}</span>`,
+                    alert.ticker,
+                    alert.pivot_price,
+                    alert.confirm_price,
+                    alert.confirm_time,
+                    `<a href="${alert.chart}" target="_blank" class="btn btn-sm btn-warning">View</a>`
+                ]);
+            });
+
+            table.draw(false);
+        });
+}
+
+// Initial Load
+loadAlerts();
+
+// Auto refresh every 5 seconds
+setInterval(loadAlerts, 5000);
+
+</script>
+
+</body>
+</html>
