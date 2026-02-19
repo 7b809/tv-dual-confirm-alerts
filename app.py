@@ -53,7 +53,20 @@ def webhook():
 # ==========================
 @app.route("/api/alerts", methods=["GET"])
 def get_alerts():
-    alerts = list(collection.find({}, {"_id": 0}).sort("timestamp", -1).limit(200))
+
+    # Get start of today (UTC)
+    now = datetime.now(timezone.utc)
+    start_of_today = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
+
+    alerts = list(
+        collection.find(
+            {"created_at": {"$gte": start_of_today}},
+            {"_id": 0}
+        )
+        .sort("timestamp", -1)
+        .limit(200)
+    )
+
     return jsonify(alerts)
 
 
