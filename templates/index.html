@@ -54,20 +54,22 @@ function loadAlerts() {
 
             data.forEach(alert => {
 
-                let badgeColor = alert.type.includes("CE") ? "bg-success" : "bg-info";
+                // Keep your existing badge logic
+                let badgeColor = (alert.type && alert.type.includes("CE")) ? "bg-success" : "bg-info";
 
                 table.row.add([
-                    `<span class="badge ${badgeColor}">${alert.type}</span>`,
-                    alert.ticker,
-                    alert.pivot_price,
-                    alert.confirm_price,
-                    alert.confirm_time,
-                    `<a href="${alert.chart}" target="_blank" class="btn btn-sm btn-warning">View</a>`
+                    `<span class="badge ${badgeColor}">${alert.type || ""}</span>`,
+                    alert.current_symbol || "",   // FIXED (was alert.ticker)
+                    alert.pivot_price || "",
+                    alert.confirm_price || "",
+                    alert.confirm_time || "",
+                    `<a href="${alert.current_chart || '#'}" target="_blank" class="btn btn-sm btn-warning">View</a>`  // FIXED (was alert.chart)
                 ]);
             });
 
             table.draw(false);
-        });
+        })
+        .catch(error => console.error("Error loading alerts:", error));
 }
 
 // Initial Load
