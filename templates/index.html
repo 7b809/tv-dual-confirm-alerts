@@ -2,112 +2,51 @@
 <html>
 <head>
     <title>TradingView Alerts Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Bootstrap -->
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- DataTables -->
-    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 </head>
 
 <body class="bg-dark text-light">
 
-<div class="container mt-4">
-    <h2 class="mb-4 text-center">🚀 Breakout Alerts Dashboard</h2>
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">📊 TradingView Alerts</h2>
 
     <div class="table-responsive">
-        <table id="alertsTable" class="table table-dark table-striped table-bordered">
+        <table class="table table-bordered table-hover table-dark align-middle">
             <thead class="table-primary text-dark">
                 <tr>
-                    <th>Signal</th>
-                    <th>Underlying</th>
-                    <th>Strike</th>
+                    <th>Symbol</th>
+                    <th>Direction</th>
                     <th>Type</th>
-                    <th>Pivot</th>
-                    <th>Confirm</th>
+                    <th>Count</th>
+                    <th>Strike</th>
+                    <th>Main Index</th>
+                    <th>Date</th>
                     <th>Time</th>
-                    <th>Chart</th>
+                    <th>Price</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+                {% for alert in alerts %}
+                <tr class="{% if alert.direction == 'Long' %}table-success{% else %}table-danger{% endif %}">
+                    <td>{{ alert.symbol }}</td>
+                    <td>{{ alert.direction }}</td>
+                    <td>{{ alert.type }}</td>
+                    <td>{{ alert.type_count }}</td>
+                    <td>{{ alert.strike }}</td>
+                    <td>{{ alert.main_index }}</td>
+                    <td>{{ alert.date }}</td>
+                    <td>{{ alert.time }}</td>
+                    <td>{{ alert.price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
     </div>
 </div>
-
-<!-- Scripts -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
-<script>
-
-let table = $('#alertsTable').DataTable({
-    order: [[6, "desc"]],
-    pageLength: 25
-});
-
-// Manual testing link
-const manualChartLink = "https://www.tradingview.com/chart/NJntjUQW/";
-
-// Function to extract underlying & strike
-function parseSymbol(symbol) {
-    if (!symbol) return { underlying: "", strike: "" };
-
-    const match = symbol.match(/^([A-Z]+)(\d{6})([CP])(\d+)/);
-
-    if (!match) return { underlying: symbol, strike: "" };
-
-    const underlying = match[1];
-    const optionType = match[3] === "C" ? "CE" : "PE";
-    const strike = match[4] + " " + optionType;
-
-    return { underlying, strike };
-}
-
-function loadAlerts() {
-    fetch('/api/alerts')
-        .then(response => response.json())
-        .then(data => {
-
-            table.clear();
-
-            data.forEach(alert => {
-
-                const parsed = parseSymbol(alert.current_symbol);
-
-                // Build clear signal message
-                let signalText = "";
-                let signalColor = "bg-info";
-
-                if (alert.ce_status === "RISING") {
-                    signalText = "CE RISING → BUY";
-                    signalColor = "bg-success";
-                } else if (alert.pe_status === "RISING") {
-                    signalText = "PE RISING → BUY";
-                    signalColor = "bg-primary";
-                }
-
-                table.row.add([
-                    `<span class="badge ${signalColor}">${signalText}</span>`,
-                    parsed.underlying,
-                    parsed.strike,
-                    alert.type || "",
-                    alert.pivot_price || "",
-                    alert.confirm_price || "",
-                    alert.confirm_time || "",
-                    `<a href="${manualChartLink}" target="_blank" class="btn btn-sm btn-warning">View</a>`
-                ]);
-            });
-
-            table.draw(false);
-        })
-        .catch(error => console.error("Error loading alerts:", error));
-}
-
-loadAlerts();
-setInterval(loadAlerts, 5000);
-
-</script>
 
 </body>
 </html>

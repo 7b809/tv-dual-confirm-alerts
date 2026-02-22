@@ -1,6 +1,5 @@
-flask
-requests
-gunicorn
+fastapi
+uvicorn
 pymongo
-dnspython
 python-dotenv
+jinja2
